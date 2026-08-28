@@ -1,0 +1,20 @@
+# depslib dependency file v1.0
+1787944146 source:d:\leading u\8th sem\compiler\new folder\c++\bangla_compiler_cpp\bangla_compiler\bangla compiler in cpp\lexer.cpp
+
+1787944828 source:d:\leading u\8th sem\compiler\new folder\c++\bangla_compiler_cpp\bangla_compiler\bangla compiler in cpp\main.cpp
+	<iostream>
+	<windows.h>
+	"token.cpp"
+	"lexer.cpp"
+
+1787945086 d:\leading u\8th sem\compiler\new folder\c++\bangla_compiler_cpp\bangla_compiler\bangla compiler in cpp\token.cpp
+	<string>
+
+1787944141 source:d:\leading u\8th sem\compiler\new folder\c++\bangla_compiler_cpp\bangla_compiler\bangla compiler in cpp\token.cpp
+	<string>
+
+1787945125 d:\leading u\8th sem\compiler\new folder\c++\bangla_compiler_cpp\bangla_compiler\bangla compiler in cpp\lexer.cpp
+	<string>
+	<vector>
+	"token.cpp"
+
