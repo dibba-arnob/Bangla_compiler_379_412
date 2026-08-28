@@ -2,22 +2,31 @@
 #include <windows.h>
 #include "token.cpp"
 #include "lexer.cpp"
+#include "node.cpp"
+#include "parser.cpp"
 using namespace std;
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
-    Lexer lex("integer x : 5 + 3");
-    string error;
-    lex.tokenize(error);
+    Lexer l("a+b*c+(d-10)");
+    string e;
+    l.tokenize(e);
 
-    if (error != "") {
-        cout << error << endl;
-    } else {
-        for (int i = 0; i < (int)lex.tokens.size(); i++) {
-            cout << lex.tokens[i].toString() << endl;
-        }
+    if (e != "") {
+        cout << e << endl;
+        return 1;
     }
+
+    Parser p(l.tokens);
+    Node* ast = p.parse();
+
+    if (p.error != "") {
+        cout << p.error << endl;
+    } else {
+        cout << ast->toString() << endl;
+    }
+
     return 0;
 }
