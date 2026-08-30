@@ -50,7 +50,6 @@ public:
             advance();
             return new IdNode(node);
         }
-        // +a
         else if (tok->type_ == lpr) {
             advance();
             Node* node = expr();
@@ -105,7 +104,109 @@ public:
         return expr();
     }
 
-    // added grammars:
+    // condition --> expr (=|<|>) expr    e.g. a < 10, b = c
+    Node* condition() {
+        Node* left = expr();
+        if (error != "") return nullptr;
+
+        if (currentTok() != nullptr &&
+            (currentTok()->type_ == eq || currentTok()->type_ == lt || currentTok()->type_ == gt)) {
+            string op = currentTok()->type_;
+            advance();
+            Node* right = expr();
+            if (error != "") return nullptr;
+            return new BinOpNode(left, op, right);
+        }
+
+        error = "Expected comparison operator (=, <, >) in condition";
+        return nullptr;
+    }
+
+    // block --> '{' stmt* '}'
+    vector<Node*> block() {
+        vector<Node*> stmts;
+
+        if (currentTok() == nullptr || currentTok()->type_ != lbr) {
+            error = "Expected '{'";
+            return stmts;
+        }
+        advance(); // skip '{'
+
+        while (currentTok() != nullptr && currentTok()->type_ != rbr) {
+            Node* s = stmt();
+            if (error != "") return stmts;
+            stmts.push_back(s);
+        }
+
+        if (currentTok() != nullptr && currentTok()->type_ == rbr) {
+            advance(); // skip '}'
+        } else {
+            error = "Expected '}'";
+        }
+
+        return stmts;
+    }
+
+    // if_stmt --> 'if' '(' condition ')' block ('else' block)?
+    Node* if_stmt() {
+        advance(); // skip 'if'
+
+        if (currentTok() == nullptr || currentTok()->type_ != lpr) {
+            error = "Expected '(' after if";
+            return nullptr;
+        }
+        advance(); // skip '('
+
+        Node* cond = condition();
+        if (error != "") return nullptr;
+
+        if (currentTok() == nullptr || currentTok()->type_ != rpr) {
+            error = "Expected ')' after condition";
+            return nullptr;
+        }
+        advance(); // skip ')'
+
+        vector<Node*> thenStmts = block();
+        if (error != "") return nullptr;
+
+        vector<Node*> elseStmts;
+        bool hasElse = false;
+
+        if (currentTok() != nullptr && currentTok()->type_ == else_) {
+            advance(); // skip 'else'
+            elseStmts = block();
+            if (error != "") return nullptr;
+            hasElse = true;
+        }
+
+        return new IfNode(cond, thenStmts, elseStmts, hasElse);
+    }
+
+    // while_stmt --> 'while' '(' condition ')' block
+    Node* while_stmt() {
+        advance(); // skip 'while'
+
+        if (currentTok() == nullptr || currentTok()->type_ != lpr) {
+            error = "Expected '(' after while";
+            return nullptr;
+        }
+        advance(); // skip '('
+
+        Node* cond = condition();
+        if (error != "") return nullptr;
+
+        if (currentTok() == nullptr || currentTok()->type_ != rpr) {
+            error = "Expected ')' after condition";
+            return nullptr;
+        }
+        advance(); // skip ')'
+
+        vector<Node*> stmts = block();
+        if (error != "") return nullptr;
+
+        return new WhileNode(cond, stmts);
+    }
+
     // program ---> statements:
     Node* program() {
         vector<Node*> stmts;
@@ -117,17 +218,23 @@ public:
         return new ProgNode(stmts);
     }
 
-    // statements --> dec_stmt| assign_stmt| prt_stmt | expr
+    // statements --> dec_stmt| assign_stmt| prt_stmt | if_stmt | while_stmt | expr
     Node* stmt() {
         Token* tok = currentTok();
         if (tok->type_ == int_) {
             return dec_stmt();
         }
         else if (tok->type_ == id_) {
-            return assign_stmt(); // what if its just an expression.... just call expr()
+            return assign_stmt();
         }
         else if (tok->type_ == ptr) {
             return prt_stmt();
+        }
+        else if (tok->type_ == if_) {
+            return if_stmt();
+        }
+        else if (tok->type_ == while_) {
+            return while_stmt();
         }
         else {
             error = "Unexpected token: " + tok->value;
@@ -136,11 +243,8 @@ public:
     }
 
     // dec_stmt --> 'integer' identifier | 'integer' identifier : expr
-    // int a
-    // int a = 10
     Node* dec_stmt() {
-        // integer a : 10
-        advance(); // since this token is 'integer' already checked on stmt
+        advance(); // this token is 'integer' already checked on stmt
         Token* tok = currentTok();
         if (tok == nullptr || tok->type_ != id_) {
             error = "Unexpected token: " + (tok ? tok->value : string("EOF"));
@@ -160,24 +264,20 @@ public:
     }
 
     // assign_stmt --> identifier : expr
-    // a : 10, a = 10 , a = b + c
-    // a + b * c - d
     Node* assign_stmt() {
-        string id = currentTok()->value; // taking the identifier as id
+        string id = currentTok()->value;
         advance();
         if (currentTok() != nullptr && currentTok()->type_ == assign) {
-
             advance(); // skipping the :
             Node* value = expr();
             if (error != "") return nullptr;
             return new AssignNode(id, value);
         }
         else {
-            // a + 10
             if (currentTok() != nullptr &&
                 (currentTok()->type_ == pls || currentTok()->type_ == mns ||
                  currentTok()->type_ == mt  || currentTok()->type_ == div_)) {
-                pos -= 1; // since i just skipped id by calling advance....
+                pos -= 1; // since id was already skipped by advance()
                 return expr();
             }
             else {
@@ -189,7 +289,7 @@ public:
 
     // prt_stmt --> prt expr
     Node* prt_stmt() {
-        advance(); // this token is 'ptr' already checked on stmt...
+        advance(); // this token is 'ptr' already checked on stmt
         Node* e = expr();
         if (error != "") return nullptr;
         return new PrtNode(e);

@@ -106,6 +106,59 @@ public:
     }
 };
 
+// notun node (new nodes): if / while
+class IfNode : public Node {
+public:
+    Node* cond;
+    vector<Node*> thenStmts;
+    vector<Node*> elseStmts;
+    bool hasElse;
+
+    IfNode(Node* cond, vector<Node*> thenStmts, vector<Node*> elseStmts, bool hasElse) {
+        this->cond = cond;
+        this->thenStmts = thenStmts;
+        this->elseStmts = elseStmts;
+        this->hasElse = hasElse;
+    }
+
+    string toString() override {
+        string result = "if(" + cond->toString() + "){\n";
+        for (int i = 0; i < (int)thenStmts.size(); i++) {
+            result += "  " + thenStmts[i]->toString() + "\n";
+        }
+        result += "}";
+
+        if (hasElse) {
+            result += " else {\n";
+            for (int i = 0; i < (int)elseStmts.size(); i++) {
+                result += "  " + elseStmts[i]->toString() + "\n";
+            }
+            result += "}";
+        }
+        return result;
+    }
+};
+
+class WhileNode : public Node {
+public:
+    Node* cond;
+    vector<Node*> stmts;
+
+    WhileNode(Node* cond, vector<Node*> stmts) {
+        this->cond = cond;
+        this->stmts = stmts;
+    }
+
+    string toString() override {
+        string result = "while(" + cond->toString() + "){\n";
+        for (int i = 0; i < (int)stmts.size(); i++) {
+            result += "  " + stmts[i]->toString() + "\n";
+        }
+        result += "}";
+        return result;
+    }
+};
+
 // program:
 class ProgNode : public Node {
 public:

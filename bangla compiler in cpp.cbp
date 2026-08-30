@@ -32,10 +32,20 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="lexer.c">
-			<Option compilerVar="CC" />
+		<Unit filename="Token.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="lexer.cpp">
+			<Option compile="0" />
+			<Option link="0" />
 		</Unit>
 		<Unit filename="main.cpp" />
+		<Unit filename="node.cpp" />
+		<Unit filename="parser.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
