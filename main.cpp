@@ -10,6 +10,7 @@
 #include "symtable.cpp"
 #include "semantic.cpp"
 #include "tac.cpp"
+#include "targetcode.cpp"
 using namespace std;
 
 string readFile(string path, bool &ok) {
@@ -134,12 +135,22 @@ int main() {
         cout << "----- SYMBOL TABLE (from semantic analyzer) -----" << endl;
         analyzer.symtab.printSymbols();
 
-        cout << "----- THREE ADDRESS CODE -----" << endl;
         if (analyzer.errors.empty()) {
+            cout << "----- THREE ADDRESS CODE -----" << endl;
             TACGenerator tacGen;
             tacGen.gen_stmt(prog);
             tacGen.printCode();
+
+            cout << "----- TARGET CODE (Python) -----" << endl;
+            TargetCode target(tacGen.code);
+            string pyCode = target.generate();
+            cout << pyCode << endl;
+
+            target.save("output.py");
+            cout << "----- RUNNING output.py -----" << endl;
+            target.run();
         } else {
+            cout << "----- THREE ADDRESS CODE -----" << endl;
             cout << "Skipped: fix semantic errors first." << endl;
         }
     }
